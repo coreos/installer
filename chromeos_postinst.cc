@@ -20,6 +20,7 @@ using std::string;
 bool ConfigureInstall(
     const std::string& install_dev,
     const std::string& install_path,
+    BootType boot_type,
     BiosType bios_type,
     InstallConfig* install_config) {
 
@@ -51,11 +52,18 @@ bool ConfigureInstall(
     return false;
   }
 
+  // if we don't know the boot loader type, detect it. Errors are logged
+  // by the detect method.
+  if (( boot_type == kBootTypeUnknown) && !DetectBootType(&bios_type)) {
+    return false;
+  }
+
   // Put the actual values on the result structure
   install_config->slot = slot;
   install_config->root = root;
   install_config->kernel = Partition(kernel_dev);
   install_config->boot = Partition(boot_dev);
+  install_config->bios_type = bios_type;
   install_config->bios_type = bios_type;
 
   return true;
@@ -71,6 +79,18 @@ bool DetectBiosType(BiosType* bios_type) {
   }
 
   return KernelConfigToBiosType(kernel_cmd_line, bios_type);
+}
+
+bool KernelConfigToBootType(const string& kernel_config, BootType* type) {
+
+  if (kernel_config.find("coreboot_pygrub") != string::npos) {
+    *type = kBootPygrub
+    return true;
+  }
+
+  // No recognized bios type was found
+  printf("No recognized coreboot_XXX option on kernel command line\n");
+  return false;
 }
 
 bool KernelConfigToBiosType(const string& kernel_config, BiosType* type) {
@@ -433,6 +453,39 @@ bool RunPostInstall(const string& install_dir,
       }
       break;
   }
+
+  switch (install_config.boot_type)
+  {
+    case kBiosTypeUnknown:
+    case kBiosTypeSecure:
+      printf("Unexpected BiosType %d.\n", install_config.bios_type);
+      success = false;
+      break;
+
+    case kBiosTypeUBoot:
+      // The Arm platform only uses U-Boot, but may set cros_legacy to mean
+      // U-Boot without secure boot modifications. This may need handling.
+      if (!RunLegacyUBootPostInstall(install_config)) {
+        printf("Legacy PostInstall failed.\n");
+        success = false;
+      }
+      break;
+
+    case kBiosTypeLegacy:
+      if (!RunLegacyPostInstall(install_config)) {
+        printf("Legacy PostInstall failed.\n");
+        success = false;
+      }
+      break;
+
+    case kBiosTypeEFI:
+      if (!RunEfiPostInstall(install_config)) {
+        printf("EFI PostInstall failed.\n");
+        success = false;
+      }
+      break;
+  }
+
 
   cmd = StringPrintf("/bin/umount %s",
                      install_config.boot.device().c_str());

@@ -13,6 +13,7 @@
 bool ConfigureInstall(
     const std::string& install_dev,
     const std::string& install_path,
+    BootType boot_type,
     BiosType bios_type,
     InstallConfig* install_config);
 

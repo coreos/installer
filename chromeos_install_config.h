@@ -9,6 +9,11 @@
 
 #include <string>
 
+enum BootType {
+  kBootTypeUnknown,
+  kBootPyGrub,
+};
+
 enum BiosType {
   kBiosTypeUnknown,
   kBiosTypeSecure,
