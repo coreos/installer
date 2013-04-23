@@ -14,6 +14,33 @@ using std::string;
 bool RunLegacyPostInstall(const InstallConfig& install_config) {
   printf("Running LegacyPostInstall\n");
 
+  // HACKBP: Copy the kernel from the new partition to the stateful boot
+  string grub_kernel_from = StringPrintf("%s/boot/vmlinuz",
+                                    install_config.root.mount().c_str());
+
+  string grub_kernel_to = StringPrintf("/mnt/stateful_partition/boot/vmlinuz.%s",
+                                  install_config.slot.c_str());
+
+  if (!CopyFile(grub_kernel_from, grub_kernel_to))
+    return false;
+
+  // HACKBP: Copy the menu.lst.%s from the chromeos boot partition to stateful boot
+  string menu_from = StringPrintf("%s/grub/menu.lst.%s",
+                                    install_config.boot.mount().c_str(),
+                                    install_config.slot.c_str());
+
+  string menu_to = "/mnt/stateful_partition/boot/grub/menu.lst";
+
+  if (!CopyFile(menu_from, menu_to))
+    return false;
+
+  // Insert the proper root device for non-verity boots
+  if (!ReplaceInFile(StringPrintf("HDROOT%s", install_config.slot.c_str()),
+                     install_config.root.device(),
+                     menu_to))
+    return false;
+  // HACKBP: END
+
   string cmd = StringPrintf("cp -nR '%s/boot/syslinux' '%s'",
                             install_config.root.mount().c_str(),
                             install_config.boot.mount().c_str());
