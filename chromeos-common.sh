@@ -105,6 +105,14 @@ partsize() {
   sudo $GPT show -s -i $2 $1
 }
 
+# Read GPT table to find the partition number of a label. 
+# Invoke as: subshell
+# Args: DEVICE LABEL
+# Returns: partition number of LABEL
+partnum() {
+  sudo $GPT show $1 | grep "Label: \"$2\"" | awk '{print $3}' 
+}
+
 # Extract the whole disk block device from the partition device.
 # This works for /dev/sda3 (-> /dev/sda) as well as /dev/mmcblk0p2
 # (-> /dev/mmcblk0).
