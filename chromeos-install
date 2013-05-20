@@ -402,38 +402,6 @@ if [ "$FLAGS_skip_rootfs" -eq "$FLAGS_TRUE" ]; then
   exit 0
 fi
 
-# Install the content.
-echo "Copying kernel..."
-fast_dd 512 ${KERNEL_IMG_SECTORS} ${START_KERN_A} ${KERNEL_IMG_OFFSET} \
-  if=${KERNEL_IMG} of=${DST} conv=notrunc,fsync
-
-# Copy kernel verification block to target HD
-copy_kernel_vblock() {
-  local ret=0
-
-  if [ -s $VERIFY_BLOB ]; then
-    fast_dd 512 0 ${START_KERN_A} 0 if=${VERIFY_BLOB} of=${DST} conv=notrunc
-    fast_dd 512 0 ${START_KERN_B} 0 if=${VERIFY_BLOB} of=${DST} conv=notrunc
-    ret=1
-  fi
-  echo ${ret}
-}
-
-# The recovery image is signed with different keys from the hard-disk image. We
-# need to copy the hard disk verification block from the stateful partition so
-# that reboot from HD can be verified.
-VERIFY_BLOB="${ROOT}/mnt/stateful_partition/vmlinuz_hd.vblock"
-if [ "$FLAGS_skip_vblock" -eq "$FLAGS_FALSE" ]; then
-  VBLOCK_RET=$(copy_kernel_vblock)
-
-  if [ "${VBLOCK_RET}" -eq "1" ]; then
-    echo "Copied kernel verification blob from ${VERIFY_BLOB}"
-  else
-    echo "Error: kernel verification blob not found in stateful partition"
-    exit 1
-  fi
-fi
-
 echo "Copying rootfs..."
 # We can no longer update the label on the rootfs because that changes bits
 # that will break both the delta updater and verified boot.  We must do a
