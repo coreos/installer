@@ -334,7 +334,6 @@ trap cleanup EXIT
 
 ##############################################################################
 
-KERNEL_IMG_OFFSET=0
 ROOTFS_IMG_OFFSET=0
 OEM_IMG_OFFSET=0
 ESP_IMG_OFFSET=0
@@ -342,13 +341,18 @@ ESP_IMG_OFFSET=0
 # Clean media browser mounts if they've popped up.
 prepare_disk
 
+NUM_STATEFUL=$(partnum $1 STATE)
+NUM_ROOTFS_A=$(partnum $1 ROOT-A)
+NUM_ROOTFS_B=$(partnum $1 ROOT-B)
+NUM_OEM=$(partnum $1 OEM)
+NUM_ESP=$(partnum $1 EFI-SYSTEM)
+
 # What do we expect & require to have on the source device?
 if [ -z "$FLAGS_payload_image" ]; then
-  STATEFUL_IMG=$(make_partition_dev ${SRC} 1)
-  KERNEL_IMG=$(make_partition_dev ${SRC} 2)
-  ROOTFS_IMG=$(make_partition_dev ${SRC} 3)
-  OEM_IMG=$(make_partition_dev ${SRC} 8)
-  ESP_IMG=$(make_partition_dev ${SRC} 12)
+  STATEFUL_IMG=$(make_partition_dev ${SRC} ${NUM_STATEFUL})
+  ROOTFS_IMG=$(make_partition_dev ${SRC} ${NUM_ROOTFS_A})
+  OEM_IMG=$(make_partition_dev ${SRC} ${NUM_OEM})
+  ESP_IMG=$(make_partition_dev ${SRC} ${NUM_ESP})
 else
   KERNEL_IMG=${FLAGS_payload_image}
   ROOTFS_IMG=${FLAGS_payload_image}
@@ -357,16 +361,10 @@ else
 
   locate_gpt
 
-  STATEFUL_IMG_OFFSET=$(partoffset "${FLAGS_payload_image}" 1)
-  KERNEL_IMG_OFFSET=$(partoffset "${FLAGS_payload_image}" 2)
-  ROOTFS_IMG_OFFSET=$(partoffset "${FLAGS_payload_image}" 3)
-  OEM_IMG_OFFSET=$(partoffset "${FLAGS_payload_image}" 8)
-  ESP_IMG_OFFSET=$(partoffset "${FLAGS_payload_image}" 12)
-
-  if [ ${FLAGS_use_payload_kern_b} -eq ${FLAGS_TRUE} ]; then
-    KERNEL_IMG_SECTORS=$(partsize "${FLAGS_payload_image}" 4)
-    KERNEL_IMG_OFFSET=$(partoffset "${FLAGS_payload_image}" 4)
-  fi
+  STATEFUL_IMG_OFFSET=$(partoffset "${FLAGS_payload_image}" ${NUM_STATEFUL})
+  ROOTFS_IMG_OFFSET=$(partoffset "${FLAGS_payload_image}" ${NUM_ROOTFS_A})
+  OEM_IMG_OFFSET=$(partoffset "${FLAGS_payload_image}" ${NUM_OEM})
+  ESP_IMG_OFFSET=$(partoffset "${FLAGS_payload_image}" ${NUM_ESP})
 
   # Mount the src image
   loop_offset_setup "${FLAGS_payload_image}" $STATEFUL_IMG_OFFSET

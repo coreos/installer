@@ -205,27 +205,27 @@ legacy_offset_size_export() {
   # This should disappear eventually, but it's here to make existing
   # code work for now.
 
-  START_STATEFUL=$(partoffset $1 1)
-  START_KERN_A=$(partoffset $1 2)
-  START_ROOTFS_A=$(partoffset $1 3)
-  START_KERN_B=$(partoffset $1 4)
-  START_ROOTFS_B=$(partoffset $1 5)
-  START_OEM=$(partoffset $1 8)
-  START_RWFW=$(partoffset $1 11)
-  START_ESP=$(partoffset $1 12)
+  NUM_STATEFUL=$(partnum $1 STATE)
+  NUM_ROOTFS_A=$(partnum $1 ROOT-A)
+  NUM_ROOTFS_B=$(partnum $1 ROOT-B)
+  NUM_OEM=$(partnum $1 OEM)
+  NUM_ESP=$(partnum $1 EFI-SYSTEM)
 
-  NUM_STATEFUL_SECTORS=$(partsize $1 1)
-  NUM_KERN_SECTORS=$(partsize $1 2)
-  NUM_ROOTFS_SECTORS=$(partsize $1 3)
-  NUM_OEM_SECTORS=$(partsize $1 8)
-  NUM_RWFW_SECTORS=$(partsize $1 11)
-  NUM_ESP_SECTORS=$(partsize $1 12)
+  START_STATEFUL=$(partoffset $1 ${NUM_STATEFUL})
+  START_ROOTFS_A=$(partoffset $1 ${NUM_ROOTFS_A})
+  START_ROOTFS_B=$(partoffset $1 ${NUM_ROOTFS_B})
+  START_OEM=$(partoffset $1 ${NUM_OEM})
+  START_ESP=$(partoffset $1 ${NUM_ESP})
 
-  STATEFUL_IMG_SECTORS=$(partsize $1 1)
-  KERNEL_IMG_SECTORS=$(partsize $1 2)
-  ROOTFS_IMG_SECTORS=$(partsize $1 3)
-  OEM_IMG_SECTORS=$(partsize $1 8)
-  ESP_IMG_SECTORS=$(partsize $1 12)
+  NUM_STATEFUL_SECTORS=$(partsize $1 ${NUM_STATEFUL})
+  NUM_ROOTFS_SECTORS=$(partsize $1 ${NUM_ROOTFS_A})
+  NUM_OEM_SECTORS=$(partsize $1 ${NUM_OEM})
+  NUM_ESP_SECTORS=$(partsize $1 ${NUM_ESP})
+
+  STATEFUL_IMG_SECTORS=$(partsize $1 ${NUM_STATEFUL})
+  ROOTFS_IMG_SECTORS=$(partsize $1 ${NUM_ROOTFS_A})
+  OEM_IMG_SECTORS=$(partsize $1 ${NUM_OEM})
+  ESP_IMG_SECTORS=$(partsize $1 ${NUM_ESP})
 }
 
 install_hybrid_mbr() {
@@ -234,8 +234,9 @@ install_hybrid_mbr() {
   # from MBR formatted disks only
   info "Creating hybrid MBR"
   locate_gpt
-  local start_esp=$(partoffset "$1" 12)
-  local num_esp_sectors=$(partsize "$1" 12)
+  legacy_offset_size_export ${1}
+  local start_esp=$(partoffset "$1" ${NUM_ESP})
+  local num_esp_sectors=$(partsize "$1" ${NUM_ESP})
   sudo sfdisk "${1}" <<EOF
 unit: sectors
 
