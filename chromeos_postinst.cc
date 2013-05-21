@@ -30,7 +30,7 @@ bool ConfigureInstall(
     case 3:
       slot = "A";
       break;
-    case 5:
+    case 4:
       slot = "B";
       break;
     default:
@@ -39,11 +39,10 @@ bool ConfigureInstall(
       return false;
   }
 
-  string kernel_dev = MakePartitionDev(root.base_device(),
-                                       root.number() - 1);
+  // TODOBP: Get rid of all of the kernel_dev logic in this file
+  string kernel_dev = MakePartitionDev(root.base_device(), root.number());
 
-  string boot_dev = MakePartitionDev(root.base_device(),
-                                     12);
+  string boot_dev = MakePartitionDev(root.base_device(), 1);
 
   // if we don't know the bios type, detect it. Errors are logged
   // by the detect method.

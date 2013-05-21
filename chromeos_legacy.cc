@@ -14,6 +14,23 @@ using std::string;
 bool RunLegacyPostInstall(const InstallConfig& install_config) {
   printf("Running LegacyPostInstall\n");
 
+  // Copy the correct menu.lst into place for cloud bootloaders that want
+  // a /boot/grub/menu.lst file
+  string menu_from = StringPrintf("%s/boot/grub/menu.lst.%s",
+                                    install_config.boot.mount().c_str(),
+                                    install_config.slot.c_str());
+
+  string menu_to = StringPrintf("%s/boot/grub/menu.lst",
+                                    install_config.boot.mount().c_str());
+
+  if (!CopyFile(menu_from, menu_to))
+    return false;
+
+  if (!ReplaceInFile(StringPrintf("HDROOT%s", install_config.slot.c_str()),
+                     install_config.root.device(),
+                     menu_to))
+    return false;
+
   string cmd = StringPrintf("cp -nR '%s/boot/syslinux' '%s'",
                             install_config.root.mount().c_str(),
                             install_config.boot.mount().c_str());
