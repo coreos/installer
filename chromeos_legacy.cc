@@ -49,24 +49,11 @@ bool RunLegacyPostInstall(const InstallConfig& install_config) {
   if (!CopyFile(kernel_from, kernel_to))
     return false;
 
-  string kernel_config = DumpKernelConfig(install_config.kernel.device());
-  string kernel_config_root = ExtractKernelArg(kernel_config, "root");
-  string kernel_config_dm = ExtractKernelArg(kernel_config, "dm");
-
   // Of the form: PARTUUID=XXX-YYY-ZZZ
   string root_uuid = StringPrintf("PARTUUID=%s",
                                   install_config.root.uuid().c_str());
 
-  // The verity config from the kernel contains short hand symbols for
-  // partition names that we can't get away with.
-  // %U+1 -> PARTUUID=XXX-YYY-ZZZ
-  ReplaceAll(kernel_config_dm, "%U+1", install_config.root.uuid());
-
-  // Prepare the new default.cfg
-
-  string verity_enabled = (IsReadonly(kernel_config_root) ?
-                           "chromeos-vhd" : "chromeos-hd");
-
+  string verity_enabled = "coreos";
   string default_syslinux_cfg = StringPrintf("DEFAULT %s.%s\n",
                                              verity_enabled.c_str(),
                                              install_config.slot.c_str());
@@ -92,12 +79,6 @@ bool RunLegacyPostInstall(const InstallConfig& install_config) {
   // Insert the proper root device for non-verity boots
   if (!ReplaceInFile(StringPrintf("HDROOT%s", install_config.slot.c_str()),
                      install_config.root.device(),
-                     root_cfg_file))
-    return false;
-
-  // Insert the proper verity options for verity boots
-  if (!ReplaceInFile(StringPrintf("DMTABLE%s", install_config.slot.c_str()),
-                     kernel_config_dm,
                      root_cfg_file))
     return false;
 

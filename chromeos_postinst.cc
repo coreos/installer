@@ -194,48 +194,6 @@ bool ChromeosChrootPostinst(const InstallConfig& install_config,
   printf("Syncing filesystems before changing boot order...\n");
   sync();
 
-  printf("Updating Partition Table Attributes using CgptManager...\n");
-
-  CgptManager cgpt_manager;
-
-  int result = cgpt_manager.Initialize(install_config.root.base_device());
-  if (result != kCgptSuccess) {
-    printf("Unable to initialize CgptManager\n");
-    return false;
-  }
-
-  result = cgpt_manager.SetHighestPriority(install_config.kernel.number());
-  if (result != kCgptSuccess) {
-    printf("Unable to set highest priority for kernel %d\n",
-           install_config.kernel.number());
-    return false;
-  }
-
-  // If it's not an update, pre-mark the first boot as successful
-  // since we can't fall back on the old install.
-  bool new_kern_successful = !is_update;
-  result = cgpt_manager.SetSuccessful(install_config.kernel.number(),
-                                      new_kern_successful);
-  if (result != kCgptSuccess) {
-    printf("Unable to set successful to %d for kernel %d\n",
-           new_kern_successful,
-           install_config.kernel.number());
-    return false;
-  }
-
-  int numTries = 6;
-  result = cgpt_manager.SetNumTriesLeft(install_config.kernel.number(),
-                                        numTries);
-  if (result != kCgptSuccess) {
-    printf("Unable to set NumTriesLeft to %d for kernel %d\n",
-           numTries,
-           install_config.kernel.number());
-    return false;
-  }
-
-  printf("Updated kernel %d with Successful = %d and NumTriesLeft = %d\n",
-         install_config.kernel.number(), new_kern_successful, numTries);
-
   if (make_dev_readonly) {
     printf("Making dev %s read-only\n", install_config.root.device().c_str());
     MakeDeviceReadOnly(install_config.root.device());  // Ignore error
@@ -263,65 +221,6 @@ bool ChromeosChrootPostinst(const InstallConfig& install_config,
     printf("Touch(/mnt/stateful_partition/.install_completed) FAILED\n");
     if (is_factory_install)
       return false;
-  }
-
-  // In postinst in future, we may provide an option (ex, --update_firmware).
-  string firmware_tag_file = (install_config.root.mount() +
-                              "/root/.force_update_firmware");
-
-  bool attempt_firmware_update = (!is_factory_install &&
-                                  (access(firmware_tag_file.c_str(), 0) == 0));
-
-  // In factory process, firmware is either pre-flashed or assigned by
-  // mini-omaha server, and we don't want to try updates inside postinst.
-  if (attempt_firmware_update) {
-    if (!FirmwareUpdate(install_config.root.mount(), is_update)) {
-      // Note: This will only rollback the ChromeOS verified boot target.
-      // The assumption is that systems running firmware autoupdate
-      // are not running legacy (non-ChromeOS) firmware. If the firmware
-      // updater crashes or writes corrupt data rather than gracefully
-      // failing, we'll probably need to recover with a recovery image.
-      printf("Rolling back update due to failure installing required "
-             "firmware.\n");
-
-      // In all these checks below, we continue even if there's a failure
-      // so as to cleanup as much as possible.
-      new_kern_successful = false;
-      bool rollback_successful = true;
-      result = cgpt_manager.SetSuccessful(install_config.kernel.number(),
-                                          new_kern_successful);
-      if (result != kCgptSuccess) {
-        rollback_successful = false;
-        printf("Unable to set successful to %d for kernel %d\n",
-               new_kern_successful,
-               install_config.kernel.number());
-      }
-
-      numTries = 0;
-      result = cgpt_manager.SetNumTriesLeft(install_config.kernel.number(),
-                                            numTries);
-      if (result != kCgptSuccess) {
-        rollback_successful = false;
-        printf("Unable to set NumTriesLeft to %d for kernel %d\n",
-               numTries,
-               install_config.kernel.number());
-      }
-
-      int priority = 0;
-      result = cgpt_manager.SetPriority(install_config.kernel.number(),
-                                        priority);
-      if (result != kCgptSuccess) {
-        rollback_successful = false;
-        printf("Unable to set Priority to %d for kernel %d\n",
-               priority,
-               install_config.kernel.number());
-      }
-
-      if (rollback_successful)
-        printf("Successfully updated GPT with all settings to rollback.\n");
-
-      return false;
-    }
   }
 
   printf("ChromeosChrootPostinst complete\n");
