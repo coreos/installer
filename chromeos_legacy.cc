@@ -14,7 +14,7 @@
 
 using std::string;
 
-bool RunLegacyPostInstall(const InstallConfig& install_config) {
+bool RunLegacyBootloaderInstall(const InstallConfig& install_config) {
   printf("Running LegacyPostInstall\n");
 
   // Copy the correct menu.lst into place for cloud bootloaders that want
@@ -73,7 +73,10 @@ bool RunLegacyPostInstall(const InstallConfig& install_config) {
                              install_config.slot.c_str()),
                 root_cfg_file))
     return false;
+}
 
+
+bool RunCgptInstall(const InstallConfig& install_config) {
   printf("Updating Partition Table Attributes using CgptManager...\n");
 
   CgptManager cgpt_manager;
@@ -124,6 +127,14 @@ bool RunLegacyPostInstall(const InstallConfig& install_config) {
 
 
   return true;
+}
+
+bool RunLegacyPostInstall(const InstallConfig& install_config) {
+  if (!RunLegacyBootloaderInstall(install_config)) {
+    return false
+  }
+
+  return RunCgptInstall(install_config);
 }
 
 bool RunLegacyUBootPostInstall(const InstallConfig& install_config) {
