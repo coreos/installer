@@ -29,11 +29,6 @@ bool RunLegacyPostInstall(const InstallConfig& install_config) {
   if (!CopyFile(menu_from, menu_to))
     return false;
 
-  if (!ReplaceInFile(StringPrintf("HDROOT%s", install_config.slot.c_str()),
-                     install_config.root.device(),
-                     menu_to))
-    return false;
-
   string cmd = StringPrintf("cp -nR '%s/boot/syslinux' '%s'",
                             install_config.root.mount().c_str(),
                             install_config.boot.mount().c_str());
@@ -78,13 +73,6 @@ bool RunLegacyPostInstall(const InstallConfig& install_config) {
                              install_config.slot.c_str()),
                 root_cfg_file))
     return false;
-
-  // Insert the proper root device for non-verity boots
-  if (!ReplaceInFile(StringPrintf("HDROOT%s", install_config.slot.c_str()),
-                     install_config.root.device(),
-                     root_cfg_file))
-    return false;
-
 
   printf("Updating Partition Table Attributes using CgptManager...\n");
 
