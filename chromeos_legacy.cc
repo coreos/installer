@@ -5,13 +5,16 @@
 #include "chromeos_legacy.h"
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <unistd.h>
 
 #include "inst_util.h"
 
+#include "CgptManager.h"
+
 using std::string;
 
-bool RunLegacyPostInstall(const InstallConfig& install_config) {
+bool RunLegacyBootloaderInstall(const InstallConfig& install_config) {
   printf("Running LegacyPostInstall\n");
 
   // Copy the correct menu.lst into place for cloud bootloaders that want
@@ -24,11 +27,6 @@ bool RunLegacyPostInstall(const InstallConfig& install_config) {
                                     install_config.boot.mount().c_str());
 
   if (!CopyFile(menu_from, menu_to))
-    return false;
-
-  if (!ReplaceInFile(StringPrintf("HDROOT%s", install_config.slot.c_str()),
-                     install_config.root.device(),
-                     menu_to))
     return false;
 
   string cmd = StringPrintf("cp -nR '%s/boot/syslinux' '%s'",
@@ -75,14 +73,68 @@ bool RunLegacyPostInstall(const InstallConfig& install_config) {
                              install_config.slot.c_str()),
                 root_cfg_file))
     return false;
+}
 
-  // Insert the proper root device for non-verity boots
-  if (!ReplaceInFile(StringPrintf("HDROOT%s", install_config.slot.c_str()),
-                     install_config.root.device(),
-                     root_cfg_file))
+
+bool RunCgptInstall(const InstallConfig& install_config) {
+  printf("Updating Partition Table Attributes using CgptManager...\n");
+
+  CgptManager cgpt_manager;
+
+  int result = cgpt_manager.Initialize(install_config.root.base_device());
+  if (result != kCgptSuccess) {
+    printf("Unable to initialize CgptManager\n");
     return false;
+  }
+
+  result = cgpt_manager.SetHighestPriority(install_config.root.number());
+  if (result != kCgptSuccess) {
+    printf("Unable to set highest priority for kernel %d\n",
+           install_config.kernel.number());
+    return false;
+  }
+
+  // Extract External ENVs
+  bool is_factory_install = getenv("IS_FACTORY_INSTALL");
+  bool is_recovery_install = getenv("IS_RECOVERY_INSTALL");
+  bool is_install = getenv("IS_INSTALL");
+  bool is_update = !is_factory_install && !is_recovery_install && !is_install;
+
+  // If it's not an update, pre-mark the first boot as successful
+  // since we can't fall back on the old install.
+  bool new_root_successful = !is_update;
+  result = cgpt_manager.SetSuccessful(install_config.root.number(),
+                                      new_root_successful);
+  if (result != kCgptSuccess) {
+    printf("Unable to set successful to %d for kernel %d\n",
+           new_root_successful,
+           install_config.kernel.number());
+    return false;
+  }
+
+  int numTries = 1;
+  result = cgpt_manager.SetNumTriesLeft(install_config.root.number(),
+                                        numTries);
+  if (result != kCgptSuccess) {
+    printf("Unable to set NumTriesLeft to %d for kernel %d\n",
+           numTries,
+           install_config.kernel.number());
+    return false;
+  }
+
+  printf("Updated root %d with Successful = %d and NumTriesLeft = %d\n",
+         install_config.root.number(), new_root_successful, numTries);
+
 
   return true;
+}
+
+bool RunLegacyPostInstall(const InstallConfig& install_config) {
+  if (!RunLegacyBootloaderInstall(install_config)) {
+    return false
+  }
+
+  return RunCgptInstall(install_config);
 }
 
 bool RunLegacyUBootPostInstall(const InstallConfig& install_config) {
