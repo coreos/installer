@@ -73,6 +73,8 @@ bool RunLegacyBootloaderInstall(const InstallConfig& install_config) {
                              install_config.slot.c_str()),
                 root_cfg_file))
     return false;
+
+  return true;
 }
 
 
@@ -131,7 +133,7 @@ bool RunCgptInstall(const InstallConfig& install_config) {
 
 bool RunLegacyPostInstall(const InstallConfig& install_config) {
   if (!RunLegacyBootloaderInstall(install_config)) {
-    return false
+    return false;
   }
 
   return RunCgptInstall(install_config);
