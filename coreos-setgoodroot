@@ -21,10 +21,11 @@ guid=$(sed 's/.*root=PARTUUID=\([0-9a-fA-F-]\+\).*/\1/' /proc/cmdline)
 root_dev=$($sudo cgpt find -1 -u $guid)
 
 # Split the kernel device in the base device and paritition number.
+# TODO: BP: We can do this logic in cgpt but this is fine for now.
 base_dev=$(get_block_dev_from_partition_dev $root_dev)
 root_num=$(get_partition_number $root_dev)
 
-# Mark the kernel as successfully booted (success=1, tries=0).
+# Mark the root as successfully booted (success=1, tries=0).
 $sudo cgpt add $base_dev -i $root_num -S1 -T0
-# Mark the kernel as highest priority
+# Mark the root as highest priority
 $sudo cgpt prioritize $base_dev -i $root_num
