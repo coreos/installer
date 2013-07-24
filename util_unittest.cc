@@ -61,9 +61,9 @@ TEST(UtilTest, ReadFileToStringTest) {
 
   // This constant should match the contents of lsb-release-test.txt exactly.
   const char* LSB_CONTENTS =
-      "CHROMEOS_RELEASE_BOARD=x86-mario\n"
-      "CHROMEOS_RELEASE=1568.0.2012_01_19_1424\n"
-      "CHROMEOS_AUSERVER=http://blah.blah:8080/update\n";
+      "COREOS_RELEASE_BOARD=x86-mario\n"
+      "COREOS_RELEASE=1568.0.2012_01_19_1424\n"
+      "COREOS_AUSERVER=http://blah.blah:8080/update\n";
 
   // Non-existent file
   EXPECT_EQ(ReadFileToString("/foo", &result), false);
@@ -154,24 +154,24 @@ TEST(UtilTest, LsbReleaseValueTest) {
   string lsb_file = GetSourceFile("lsb-release-test.txt");
 
   EXPECT_EQ(LsbReleaseValue("bogus",
-                            "CHROMEOS_RELEASE_BOARD",
+                            "COREOS_RELEASE_BOARD",
                             &result_string),
             false);
 
   EXPECT_EQ(LsbReleaseValue(lsb_file,
-                            "CHROMEOS_RELEASE_BOARD",
+                            "COREOS_RELEASE_BOARD",
                             &result_string),
             true);
   EXPECT_EQ(result_string, "x86-mario");
 
   EXPECT_EQ(LsbReleaseValue(lsb_file,
-                            "CHROMEOS_RELEASE",
+                            "COREOS_RELEASE",
                             &result_string),
             true);
   EXPECT_EQ(result_string, "1568.0.2012_01_19_1424");
 
   EXPECT_EQ(LsbReleaseValue(lsb_file,
-                            "CHROMEOS_AUSERVER",
+                            "COREOS_AUSERVER",
                             &result_string),
             true);
   EXPECT_EQ(result_string, "http://blah.blah:8080/update");

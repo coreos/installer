@@ -268,7 +268,7 @@ bool RunPostInstall(const string& install_dir,
 
   string src_version;
   if (!LsbReleaseValue("/etc/lsb-release",
-                       "CHROMEOS_RELEASE_VERSION",
+                       "COREOS_RELEASE_VERSION",
                        &src_version) ||
       src_version.empty()) {
     printf("Failed to read /etc/lsb-release\n");
