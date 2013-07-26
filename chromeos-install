@@ -475,7 +475,7 @@ if [ -f "${ROOT}"/root/.dev_mode ]; then
   DIRLIST="
       overlays/var/db/pkg
       overlays/var/lib/portage
-      images/dev
+      overlays/usr/local
   "
   for DIR in ${DIRLIST}; do
     if [ ! -d "${ROOT}/media/state/${DIR}" ]; then
