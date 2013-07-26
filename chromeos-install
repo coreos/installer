@@ -373,7 +373,7 @@ else
   ROOTFS_IMG_LOOP=$LOOP_DEV
 
   tracked_mount -o ro "$ROOTFS_IMG_LOOP" "$ROOT"
-  tracked_mount -o ro "$STATEFUL_IMG_LOOP" "$ROOT"/mnt/stateful_partition
+  tracked_mount -o ro "$STATEFUL_IMG_LOOP" "$ROOT"/media/state
 fi
 
 if [ -n "${FLAGS_pmbr_code}" ]; then
@@ -473,12 +473,12 @@ loop_offset_setup $DST $START_STATEFUL
 mount_on_loop_dev readwrite
 if [ -f "${ROOT}"/root/.dev_mode ]; then
   DIRLIST="
-      var_overlay/db/pkg
-      var_overlay/lib/portage
-      dev_image
+      overlays/var/db/pkg
+      overlays/var/lib/portage
+      overlays/usr/local
   "
   for DIR in ${DIRLIST}; do
-    if [ ! -d "${ROOT}/mnt/stateful_partition/${DIR}" ]; then
+    if [ ! -d "${ROOT}/media/state/${DIR}" ]; then
       continue
     fi
     OPT_U=""
@@ -487,7 +487,7 @@ if [ -f "${ROOT}"/root/.dev_mode ]; then
     fi
     PARENT=$(dirname ${DIR})
     sudo mkdir -p ${TMPMNT}/${PARENT}
-    sudo cp -a${OPT_U} "${ROOT}/mnt/stateful_partition/${DIR}" ${TMPMNT}/${DIR}
+    sudo cp -a${OPT_U} "${ROOT}/media/state/${DIR}" ${TMPMNT}/${DIR}
   done
 elif crossystem 'devsw_boot?1' ; then
   # The dev switch was on when we booted; we assume it will be on
