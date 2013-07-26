@@ -217,8 +217,8 @@ bool ChromeosChrootPostinst(const InstallConfig& install_config,
   // Create a file indicating that the install is completed. The file
   // will be used in /sbin/chromeos_startup to run tasks on the next boot.
   // See comments above about removing ureadahead files.
-  if (!Touch("/mnt/stateful_partition/.install_completed")) {
-    printf("Touch(/mnt/stateful_partition/.install_completed) FAILED\n");
+  if (!Touch("/media/state/.install_completed")) {
+    printf("Touch(/media/state/.install_completed) FAILED\n");
     if (is_factory_install)
       return false;
   }
@@ -254,7 +254,7 @@ bool RunPostInstall(const string& install_dir,
   }
 
   // If we can read in the stateful lsb-release we are updating FROM, log it.
-  if (ReadFileToString("/mnt/stateful_partition/etc/lsb-release",
+  if (ReadFileToString("/media/state/etc/lsb-release",
                        &lsb_contents)) {
     printf("\nFROM (stateful):\n%s", lsb_contents.c_str());
   }
