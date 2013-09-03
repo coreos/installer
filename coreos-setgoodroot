@@ -9,9 +9,9 @@
 . "$(dirname "$0")/chromeos-common.sh" || exit 1
 
 if [ "0" = $(id -u) ]; then
-  local sudo=""
+  sudo=""
 else
-  local sudo=sudo
+  sudo=sudo
 fi
 
 # Extract the kernel partition's UniqueGuid from the command line.
