@@ -14,11 +14,8 @@ else
   sudo=sudo
 fi
 
-# Extract the kernel partition's UniqueGuid from the command line.
-guid=$(sed 's/.*root=PARTUUID=\([0-9a-fA-F-]\+\).*/\1/' /proc/cmdline)
-
-# Look through all the known devices to find that one partition.
-root_dev=$($sudo cgpt find -1 -u $guid)
+# Look up the currently mounted root device.
+root_dev=$(findmnt -n --raw --output=source --target=/)
 
 # Split the kernel device in the base device and paritition number.
 # TODO: BP: We can do this logic in cgpt but this is fine for now.
