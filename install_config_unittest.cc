@@ -19,7 +19,6 @@ void TestConfigureInstall(const std::string& install_dev,
                           bool expected_success,
                           const std::string& expected_slot,
                           const std::string& expected_root,
-                          const std::string& expected_kernel,
                           const std::string& expected_boot) {
 
   InstallConfig install_config;
@@ -34,7 +33,6 @@ void TestConfigureInstall(const std::string& install_dev,
 
   EXPECT_EQ(install_config.slot, expected_slot);
   EXPECT_EQ(install_config.root.device(), expected_root);
-  EXPECT_EQ(install_config.kernel.device(), expected_kernel);
   EXPECT_EQ(install_config.boot.device(), expected_boot);
 }
 
@@ -43,18 +41,18 @@ class InstallConfigTest : public ::testing::Test { };
 TEST(InstallConfigTest, ConfigureInstallTest) {
   TestConfigureInstall("/dev/sda3", "/mnt",
                        true,
-                       "A", "/dev/sda3", "/dev/sda2", "/dev/sda12");
-  TestConfigureInstall("/dev/sda5", "/mnt",
+                       "A", "/dev/sda3", "/dev/sda1");
+  TestConfigureInstall("/dev/sda4", "/mnt",
                        true,
-                       "B", "/dev/sda5", "/dev/sda4", "/dev/sda12");
+                       "B", "/dev/sda4", "/dev/sda1");
   TestConfigureInstall("/dev/mmcblk0p3", "/mnt",
                        true, "A",
-                       "/dev/mmcblk0p3", "/dev/mmcblk0p2", "/dev/mmcblk0p12");
-  TestConfigureInstall("/dev/mmcblk0p5", "/mnt",
+                       "/dev/mmcblk0p3", "/dev/mmcblk0p1");
+  TestConfigureInstall("/dev/mmcblk0p4", "/mnt",
                        true, "B",
-                       "/dev/mmcblk0p5", "/dev/mmcblk0p4", "/dev/mmcblk0p12");
+                       "/dev/mmcblk0p4", "/dev/mmcblk0p1");
   TestConfigureInstall("/dev/sda2", "/mnt",
-                       false, "", "", "", "");
+                       false, "", "", "");
   TestConfigureInstall("/dev/sda", "/mnt",
-                       false, "", "", "", "");
+                       false, "", "", "");
 }
