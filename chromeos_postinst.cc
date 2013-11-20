@@ -38,15 +38,11 @@ bool ConfigureInstall(
       return false;
   }
 
-  // TODOBP: Get rid of all of the kernel_dev logic in this file
-  string kernel_dev = MakePartitionDev(root.base_device(), root.number());
-
   string boot_dev = MakePartitionDev(root.base_device(), 1);
 
   // Put the actual values on the result structure
   install_config->slot = slot;
   install_config->root = root;
-  install_config->kernel = Partition(kernel_dev);
   install_config->boot = Partition(boot_dev);
 
   return true;
@@ -191,10 +187,9 @@ bool RunPostInstall(const string& install_dir,
   }
 
   // Log how we are configured.
-  printf("PostInstall Configured: (%s, %s, %s, %s)\n",
+  printf("PostInstall Configured: (%s, %s, %s)\n",
          install_config.slot.c_str(),
          install_config.root.device().c_str(),
-         install_config.kernel.device().c_str(),
          install_config.boot.device().c_str());
 
   // If we can read in the lsb-release we are updating FROM, log it.

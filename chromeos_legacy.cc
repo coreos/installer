@@ -68,8 +68,8 @@ bool RunCgptInstall(const InstallConfig& install_config) {
 
   result = cgpt_manager.SetHighestPriority(install_config.root.number());
   if (result != kCgptSuccess) {
-    printf("Unable to set highest priority for kernel %d\n",
-           install_config.kernel.number());
+    printf("Unable to set highest priority for root %d\n",
+           install_config.root.number());
     return false;
   }
 
@@ -77,9 +77,9 @@ bool RunCgptInstall(const InstallConfig& install_config) {
   result = cgpt_manager.SetNumTriesLeft(install_config.root.number(),
                                         numTries);
   if (result != kCgptSuccess) {
-    printf("Unable to set NumTriesLeft to %d for kernel %d\n",
+    printf("Unable to set NumTriesLeft to %d for root %d\n",
            numTries,
-           install_config.kernel.number());
+           install_config.root.number());
     return false;
   }
 

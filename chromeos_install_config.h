@@ -55,7 +55,6 @@ struct InstallConfig {
   std::string slot;
 
   Partition root;
-  Partition kernel;
   Partition boot;
 };
 
