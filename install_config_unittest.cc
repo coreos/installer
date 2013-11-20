@@ -24,11 +24,8 @@ void TestConfigureInstall(const std::string& install_dev,
 
   InstallConfig install_config;
 
-  BiosType expected_bios = kBiosTypeSecure;
-
   EXPECT_EQ(ConfigureInstall(install_dev,
                              install_path,
-                             expected_bios,
                              &install_config),
             expected_success);
 
@@ -39,35 +36,6 @@ void TestConfigureInstall(const std::string& install_dev,
   EXPECT_EQ(install_config.root.device(), expected_root);
   EXPECT_EQ(install_config.kernel.device(), expected_kernel);
   EXPECT_EQ(install_config.boot.device(), expected_boot);
-  EXPECT_EQ(install_config.bios_type, expected_bios);
-}
-
-void TestStrToBiosType(string name,
-                       bool expected_success,
-                       BiosType expected_result) {
-  BiosType bios_type = kBiosTypeUnknown;
-
-  EXPECT_EQ(StrToBiosType(name, &bios_type),
-            expected_success);
-
-  if (!expected_success)
-    return;
-
-  EXPECT_EQ(bios_type, expected_result);
-}
-
-void TestKernelConfigToBiosType(string kernel_config,
-                                bool expected_success,
-                                BiosType expected_result) {
-  BiosType bios_type = kBiosTypeUnknown;
-
-  EXPECT_EQ(KernelConfigToBiosType(kernel_config, &bios_type),
-            expected_success);
-
-  if (!expected_success)
-    return;
-
-  EXPECT_EQ(bios_type, expected_result);
 }
 
 class InstallConfigTest : public ::testing::Test { };
@@ -89,28 +57,4 @@ TEST(InstallConfigTest, ConfigureInstallTest) {
                        false, "", "", "", "");
   TestConfigureInstall("/dev/sda", "/mnt",
                        false, "", "", "", "");
-}
-
-TEST(InstallConfigTest, StrToBiosTypeTest) {
-  TestStrToBiosType("secure", true, kBiosTypeSecure);
-  TestStrToBiosType("uboot", true, kBiosTypeUBoot);
-  TestStrToBiosType("legacy", true, kBiosTypeLegacy);
-  TestStrToBiosType("efi", true, kBiosTypeEFI);
-  TestStrToBiosType("fuzzy", false, kBiosTypeUnknown);
-}
-
-TEST(InstallConfigTest, KernelConfigToBiosTypeTest) {
-  BiosType legacy_bios = kBiosTypeLegacy;
-#ifdef __arm__
-  legacy_bios = kBiosTypeUBoot;
-#endif
-
-  TestKernelConfigToBiosType("kernel_config cros_secure",
-                             true, kBiosTypeSecure);
-  TestKernelConfigToBiosType("cros_legacy kernel_config",
-                             true, legacy_bios);
-  TestKernelConfigToBiosType("kernel_config cros_efi foo",
-                             true, kBiosTypeEFI);
-  TestKernelConfigToBiosType("kernel_config",
-                             false, kBiosTypeUnknown);
 }

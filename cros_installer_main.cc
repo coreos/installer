@@ -17,11 +17,7 @@ using std::string;
 const char* usage = (
     "cros_installer:\n"
     "   --help\n"
-    "   --debug\n"
-    "   cros_installer postinst <install_dev> <mount_point> [ args ]\n"
-    "     --bios [ secure | legacy | efi | uboot ]\n"
-    "     --legacy\n"
-    "     --postcommit\n");
+    "   cros_installer postinst <mount_point> <rood_dev>\n");
 
 int showHelp() {
   printf("%s", usage);
@@ -31,15 +27,9 @@ int showHelp() {
 int main(int argc, char** argv) {
 
   struct option long_options[] = {
-    {"bios", required_argument, NULL, 'b'},
-    {"debug", no_argument, NULL, 'd'},
     {"help", no_argument, NULL, 'h'},
-    {"postcommit", no_argument, NULL, 'p'},
     {NULL, 0, NULL, 0},
   };
-
-  // Unkown means we will attempt to autodetect later on.
-  BiosType bios_type = kBiosTypeUnknown;
 
   while (true) {
     int option_index;
@@ -57,23 +47,6 @@ int main(int argc, char** argv) {
       case 'h':
         // --help
         return showHelp();
-
-      case 'b':
-        // Bios type has been explicitly given, don't autodetect
-        if (!StrToBiosType(optarg, &bios_type))
-          exit(1);
-        break;
-
-      case 'd':
-        // I don't think this is used, but older update engines might
-        // in some cases. So, it's present but ignored.
-        break;
-
-      case 'p':
-        // This is an outdated argument. When we receive it, we just
-        // exit with success right away.
-        printf("Received --postcommit. This is a successful no-op.\n");
-        exit(0);
 
       default:
         printf("Unknown argument %d - switch and struct out of sync\n\n", c);
@@ -97,7 +70,7 @@ int main(int argc, char** argv) {
     string install_dev = argv[optind++];
 
     // ! converts bool to 0 / non-zero exit code
-    return !RunPostInstall(install_dev, install_dir, bios_type);
+    return !RunPostInstall(install_dev, install_dir);
   }
 
   printf("Unknown command: '%s'\n\n", command.c_str());

@@ -9,16 +9,6 @@
 
 #include <string>
 
-enum BiosType {
-  kBiosTypeUnknown,
-  kBiosTypeSecure,
-  kBiosTypeUBoot,
-  kBiosTypeLegacy,
-  kBiosTypeEFI,
-};
-
-bool StrToBiosType(std::string name, BiosType* bios_type);
-
 // We commonly need to have the same data about devices in multiple formats
 // during the install process. This class allows us to have a partition
 // device in whichever format is currently most useful.
@@ -67,8 +57,6 @@ struct InstallConfig {
   Partition root;
   Partition kernel;
   Partition boot;
-
-  BiosType bios_type;
 };
 
 #endif  // CHROMEOS_INSTALL_CONFIG
