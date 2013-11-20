@@ -39,31 +39,16 @@ bool RunLegacyBootloaderInstall(const InstallConfig& install_config) {
   if (!CopyFile(kernel_from, kernel_to))
     return false;
 
-  // Of the form: PARTUUID=XXX-YYY-ZZZ
-  string root_uuid = StringPrintf("PARTUUID=%s",
-                                  install_config.root.uuid().c_str());
-
-  string verity_enabled = "coreos";
-  string default_syslinux_cfg = StringPrintf("DEFAULT %s.%s\n",
-                                             verity_enabled.c_str(),
-                                             install_config.slot.c_str());
-
-  if (!WriteStringToFile(default_syslinux_cfg,
-                         StringPrintf("%s/syslinux/default.cfg",
-                                      install_config.boot.mount().c_str())))
-    return false;
-
-  // Prepare the new root.A/B.cfg
-
-  string root_cfg_file = StringPrintf("%s/syslinux/root.%s.cfg",
-                                      install_config.boot.mount().c_str(),
+  // Copy the correct root.A/B.cfg for syslinux
+  string root_cfg_from = StringPrintf("%s/syslinux/root.%s.cfg",
+                                      install_config.root.mount().c_str(),
                                       install_config.slot.c_str());
 
-  // Copy over the unmodified version for this release...
-  if (!CopyFile(StringPrintf("%s/boot/syslinux/root.%s.cfg",
-                             install_config.root.mount().c_str(),
-                             install_config.slot.c_str()),
-                root_cfg_file))
+  string root_cfg_to = StringPrintf("%s/syslinux/root.%s.cfg",
+                                    install_config.boot.mount().c_str(),
+                                    install_config.slot.c_str());
+
+  if (!CopyFile(root_cfg_from, root_cfg_to))
     return false;
 
   return true;
