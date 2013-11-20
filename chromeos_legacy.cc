@@ -29,14 +29,6 @@ bool RunLegacyBootloaderInstall(const InstallConfig& install_config) {
   if (!CopyFile(menu_from, menu_to))
     return false;
 
-  string cmd = StringPrintf("cp -nR '%s/boot/syslinux' '%s'",
-                            install_config.root.mount().c_str(),
-                            install_config.boot.mount().c_str());
-  if (RunCommand(cmd.c_str()) != 0) {
-    printf("Cmd: '%s' failed.\n", cmd.c_str());
-    return false;
-  }
-
   string kernel_from = StringPrintf("%s/boot/vmlinuz",
                                     install_config.root.mount().c_str());
 
