@@ -20,7 +20,7 @@ bool RunLegacyBootloaderInstall(const InstallConfig& install_config) {
   // Copy the correct menu.lst into place for cloud bootloaders that want
   // a /boot/grub/menu.lst file
   string menu_from = StringPrintf("%s/boot/grub/menu.lst.%s",
-                                    install_config.boot.mount().c_str(),
+                                    install_config.root.mount().c_str(),
                                     install_config.slot.c_str());
 
   string menu_to = StringPrintf("%s/boot/grub/menu.lst",
