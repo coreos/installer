@@ -40,7 +40,7 @@ bool RunLegacyBootloaderInstall(const InstallConfig& install_config) {
     return false;
 
   // Copy the correct root.A/B.cfg for syslinux
-  string root_cfg_from = StringPrintf("%s/syslinux/root.%s.cfg",
+  string root_cfg_from = StringPrintf("%s/boot/syslinux/root.%s.cfg",
                                       install_config.root.mount().c_str(),
                                       install_config.slot.c_str());
 
